@@ -400,6 +400,9 @@
                 <div class="tab" data-tab="vam">
                     📊 VAM
                 </div>
+                <div class="tab" data-tab="gear-ratio">
+                    ⚙️ Gear-Ratio
+                </div>
             </div>
 
             <!-- Tab Calcolo Potenza -->
@@ -818,6 +821,89 @@
                     </div>
                 </div>
 
+                <!-- Tab Calcolatore Gear-Ratio -->
+                <div id="gear-ratio" class="tab-panel hidden">
+                    <div class="section-title">⚙️ Gear-Ratio</div>
+                    <p style="color: var(--text-light); margin-bottom: 1rem;">Inserisci corona, pignone, cadenza e seleziona il pneumatico per ottenere lo sviluppo metrico e la velocità risultante.</p>
+
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="chainring">
+                                Corona (denti)
+                                <div class="label-description">Numero di denti della corona anteriore</div>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" id="chainring" value="50" step="1" min="20" max="60">
+                                <div class="unit">denti</div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="sprocket">
+                                Pignone (denti)
+                                <div class="label-description">Numero di denti del pignone posteriore</div>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" id="sprocket" value="15" step="1" min="8" max="40">
+                                <div class="unit">denti</div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="cadence">
+                                Cadenza
+                                <div class="label-description">Giri pedale al minuto (rpm)</div>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" id="cadence" value="90" step="1" min="30" max="200">
+                                <div class="unit">rpm</div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="tire-select">
+                                Pneumatico / Circonferenza
+                                <div class="label-description">Preset comuni o valore personalizzato</div>
+                            </label>
+                            <div class="input-wrapper">
+                                <select id="tire-select" onchange="updateWheelCircumference()">
+                                    <option value="2.129">700x28 (2.129 m)</option>
+                                    <option value="2.105">700x25 (2.105 m)</option>
+                                    <option value="2.096">700x23 (2.096 m)</option>
+                                    <option value="custom">Personalizzato</option>
+                                </select>
+                                <div class="unit">m</div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="tire-circ">
+                                Circonferenza personalizzata
+                                <div class="label-description">Inserisci circonferenza ruota in metri</div>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" id="tire-circ" value="2.129" step="0.001" min="1.5" max="3" disabled>
+                                <div class="unit">m</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="calculateGearRatio()">Calcola Sviluppo e Velocità</button>
+
+                    <div id="gear-result" class="result">
+                        <div class="result-inner">
+                            <div class="result-title">RISULTATI GEAR-RATIO</div>
+                            <div class="result-main" id="gear-main">---</div>
+                            <div class="result-grid" id="gear-grid"></div>
+                            <div class="details" id="gear-details"></div>
+                        </div>
+                    </div>
+
+                    <div class="help-text">
+                        <strong>Note:</strong> Lo sviluppo metrico è dato da: sviluppo = (corona / pignone) × circonferenza_ruota. La velocità (km/h) è calcolata da: velocità = sviluppo × (cadenza / 60) × 3.6.
+                    </div>
+                </div>
+
                 <!-- Fine Tab Stima Crr -->
             </div>
         </div>
@@ -1046,6 +1132,8 @@
                         estimateCrr();
                     } else if (activePanel.id === 'vam') {
                         calculateVAM();
+                    } else if (activePanel.id === 'gear-ratio') {
+                        calculateGearRatio();
                     } else {
                         calculate();
                     }
@@ -1093,6 +1181,94 @@
             container.style.display = 'block';
             container.classList.add('show');
             setTimeout(() => { container.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+        }
+
+        // Aggiorna input circonferenza quando si seleziona un preset o custom
+        function updateWheelCircumference() {
+            const sel = document.getElementById('tire-select');
+            const circInput = document.getElementById('tire-circ');
+            if (!sel || !circInput) return;
+            const val = sel.value;
+            if (val === 'custom') {
+                circInput.disabled = false;
+                circInput.focus();
+            } else {
+                circInput.disabled = true;
+                circInput.value = parseFloat(val).toFixed(3);
+            }
+        }
+
+        // Calcolo Gear-Ratio: sviluppo metrico e velocità (km/h) dalla cadenza
+        function calculateGearRatio() {
+            const chainring = parseFloat(document.getElementById('chainring').value);
+            const sprocket = parseFloat(document.getElementById('sprocket').value);
+            const cadence = parseFloat(document.getElementById('cadence').value);
+            const tireSelect = document.getElementById('tire-select').value;
+            const tireCircInput = document.getElementById('tire-circ');
+
+            if (isNaN(chainring) || isNaN(sprocket) || isNaN(cadence)) {
+                alert('Per favore inserisci corona, pignone e cadenza validi.');
+                return;
+            }
+
+            let circ = null;
+            if (tireSelect === 'custom') {
+                circ = parseFloat(tireCircInput.value);
+            } else {
+                circ = parseFloat(tireSelect);
+            }
+
+            if (isNaN(circ) || circ <= 0) {
+                alert('Inserisci una circonferenza valida (m).');
+                return;
+            }
+
+            const gearRatio = chainring / sprocket;
+            const sviluppo = gearRatio * circ; // metri per giro pedale
+            const speedMs = (cadence / 60) * sviluppo; // m/s
+            const speedKmh = speedMs * 3.6;
+
+            // Calcolo diametro ruota e gear inches
+            const wheelDiameterM = circ / Math.PI;
+            const wheelDiameterIn = wheelDiameterM * 39.3700787; // m to inches
+            const gearInches = wheelDiameterIn * gearRatio;
+
+            document.getElementById('gear-main').textContent = speedKmh.toFixed(1) + ' km/h';
+
+            const grid = document.getElementById('gear-grid');
+            grid.innerHTML = `
+                <div class="result-item">
+                    <div class="result-item-label">Rapporto</div>
+                    <div class="result-item-value">${gearRatio.toFixed(3)}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-item-label">Sviluppo metrico</div>
+                    <div class="result-item-value">${sviluppo.toFixed(3)} m</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-item-label">Velocità (@ ${cadence} rpm)</div>
+                    <div class="result-item-value">${speedKmh.toFixed(1)} km/h</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-item-label">Gear inches</div>
+                    <div class="result-item-value">${gearInches.toFixed(1)} in</div>
+                </div>
+            `;
+
+            const details = `
+                <strong>Dettagli</strong>
+                Corona: ${chainring} denti<br>
+                Pignone: ${sprocket} denti<br>
+                Circonferenza ruota: ${circ.toFixed(3)} m<br>
+                Diametro ruota: ${wheelDiameterM.toFixed(3)} m (${wheelDiameterIn.toFixed(1)} in)<br>
+                <br>
+                Formula: sviluppo = (corona / pignone) × circonferenza_ruota<br>
+                Velocità = sviluppo × (cadenza / 60) × 3.6
+            `;
+
+            document.getElementById('gear-details').innerHTML = details;
+            document.getElementById('gear-result').classList.add('show');
+            setTimeout(() => { document.getElementById('gear-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
         }
 
         // Tab switching logic
