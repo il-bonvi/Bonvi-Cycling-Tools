@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonvi-Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a3a52;
+            --secondary: #2c5f7f;
+            --accent: #e8943e;
+            --accent-light: #f5b76f;
+            --bg-main: #f4f1ea;
+            --bg-card: #ffffff;
+            --text-dark: #1a1a1a;
+            --text-light: #5a5a5a;
+            --border: #d4c9b8;
+            --shadow: rgba(26, 58, 82, 0.08);
+            --shadow-heavy: rgba(26, 58, 82, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: linear-gradient(135deg, var(--bg-main) 0%, #e8e3d8 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        .greek {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .calculator {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px var(--shadow), 0 2px 8px var(--shadow-heavy);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 2rem 0 1.5rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .label-description {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            gap: 0.5rem;
+            align-items: stretch;
+        }
+
+        input[type="number"],
+        select {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-main);
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(232, 148, 62, 0.1);
+        }
+
+        .unit {
+            padding: 0.875rem 1rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+            min-width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button {
+            width: 100%;
+            padding: 1.25rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: 'Crimson Pro', serif;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(232, 148, 62, 0.3);
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(232, 148, 62, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 2rem;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .result.show {
+            padding: 2rem;
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        .result-inner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+        }
+
+        .result-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+            text-align: center;
+        }
+
+        .result-main {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .result-item-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-item-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .details {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            backdrop-filter: blur(10px);
+        }
+
+        .details strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .calculator {
+                padding: 1.5rem;
+            }
+            
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .result-main {
+                font-size: 2rem;
+            }
+        }
+
+        .help-text {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-style: italic;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-main);
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .formula-box {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: var(--bg-main);
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        /* Tab styles */
+        .tab-headers {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+            background: var(--bg-main);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .tab-panel.hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Work in Progress</h1>
+            <p class="subtitle">Potenza, VAM e Analisi Prestazioni</p>
+        </header>
+
+        <div class="calculator">
+            <!-- Tab Headers -->
+            <div class="tab-headers">
+                <div class="tab active" data-tab="calcolo-potenza">
+                    ⚡ Calcolo Potenza
+                </div>
+                <div class="tab" data-tab="stima-crr">
+                    🔍 Stima Crr
+                </div>
+            </div>
+
+            <!-- Tab Calcolo Potenza -->
+            <div id="calcolo-potenza" class="tab-panel">
+            <div class="section-title">⚙️ Parametri del Ciclista e Bici</div>
+            
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="massa-ciclista">
+                        Massa Ciclista
+                        <div class="label-description">Peso del ciclista</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="massa-ciclista" value="70" step="0.1" min="30" max="150">
+                        <div class="unit">kg</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="massa-bici">
+                        Massa Bici + Equipaggiamento
+                        <div class="label-description">Peso bici e accessori</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="massa-bici" value="8" step="0.1" min="5" max="20">
+                        <div class="unit">kg</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="velocita">
+                        Velocità
+                        <div class="label-description">Velocità media</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="velocita" value="30" step="0.1" min="0" max="100">
+                        <div class="unit">km/h</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="pendenza">
+                        Pendenza
+                        <div class="label-description">Gradiente della salita</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="pendenza" value="5" step="0.1" min="-20" max="25">
+                        <div class="unit">%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">🌡️ Condizioni Atmosferiche</div>
+            
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="temperatura">
+                        Temperatura
+                        <div class="label-description">Temperatura ambiente</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="temperatura" value="20" step="1" min="-20" max="50">
+                        <div class="unit">°C</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="pressione">
+                        Pressione Atmosferica
+                        <div class="label-description">Pressione attuale</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="pressione" value="1013" step="1" min="800" max="1100">
+                        <div class="unit">hPa</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="umidita">
+                        Umidità Relativa
+                        <div class="label-description">Umidità dell'aria</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="umidita" value="50" step="1" min="0" max="100">
+                        <div class="unit">%</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="vento">
+                        Vento (+ favore, - contro)
+                        <div class="label-description">Componente frontale vento</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="vento" value="0" step="0.5" min="-30" max="30">
+                        <div class="unit">km/h</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">🔧 Parametri Tecnici</div>
+            
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="crr">
+                        Coefficiente Resistenza Rotolamento (Crr)
+                        <div class="label-description">0.003-0.006 per pneumatici strada</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="crr" value="0.004" step="0.0001" min="0.002" max="0.01">
+                        <div class="unit">-</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="cda">
+                        CdA (Drag Coefficient × Area)
+                        <div class="label-description">0.3-0.4 aero, 0.4-0.5 standard</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="cda" value="0.35" step="0.01" min="0.2" max="0.8">
+                        <div class="unit">m²</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="efficienza">
+                        Efficienza Drivetrain
+                        <div class="label-description">90-98% (tipico 95-97%)</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="efficienza" value="96" step="0.5" min="85" max="99">
+                        <div class="unit">%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">🌪️ Calcolo Scia (opzionale)</div>
+            
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="scia-attiva">
+                        Scia Attiva
+                        <div class="label-description">Abilita calcolo in scia</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <select id="scia-attiva" onchange="toggleScia()">
+                            <option value="no">No - Solo</option>
+                            <option value="si">Sì - In scia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group scia-input" style="opacity: 0.5; pointer-events: none;">
+                    <label for="cda-davanti">
+                        CdA Atleta Davanti
+                        <div class="label-description">Drag coefficient atleta di testa</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="cda-davanti" value="0.35" step="0.01" min="0.2" max="0.8">
+                        <div class="unit">m²</div>
+                    </div>
+                </div>
+
+                <div class="input-group scia-input" style="opacity: 0.5; pointer-events: none;">
+                    <label for="distanza-scia">
+                        Distanza dalla Ruota
+                        <div class="label-description">Distanza dall'atleta davanti</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="distanza-scia" value="0.5" step="0.1" min="0.1" max="5">
+                        <div class="unit">m</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">📊 Calcolo VAM (opzionale)</div>
+            
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="dislivello">
+                        Dislivello
+                        <div class="label-description">Metri di salita verticale</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="dislivello" value="500" step="10" min="0" max="3000">
+                        <div class="unit">m</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="tempo">
+                        Tempo
+                        <div class="label-description">Tempo di salita</div>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="tempo" value="30" step="0.5" min="0.1" max="300">
+                        <div class="unit">min</div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="calculate()">⚡ Calcola Potenza e Metriche</button>
+
+            <div id="result" class="result">
+                <div class="result-inner">
+                    <div class="result-title">RISULTATI CALCOLO</div>
+                    <div class="result-main" id="result-main">---</div>
+                    
+                    <div class="result-grid" id="result-grid"></div>
+                    
+                    <div class="details" id="result-details"></div>
+                </div>
+            </div>
+
+            <div class="help-text">
+                💡 <strong>Suggerimenti:</strong> Il calcolatore tiene conto di tutte le resistenze (gravità, rotolamento, aerodinamica) e calcola la potenza necessaria alla pedalata considerando l'efficienza del drivetrain. La densità dell'aria è calcolata automaticamente dalle condizioni atmosferiche inserite.<br><br>
+                🌪️ <strong>Scia:</strong> Quando attivata, la scia riduce il CdA effettivo in base alla distanza dall'atleta davanti. A distanza ottimale (0.3-1m) la riduzione è del 25-35%, decresce esponenzialmente aumentando la distanza. Il CdA dell'atleta davanti influenza la turbolenza creata.
+            </div>
+            </div>
+            <!-- Fine Tab Calcolo Potenza -->
+
+            <!-- Tab Stima Crr -->
+            <div id="stima-crr" class="tab-panel hidden">
+                <div class="section-title">📊 Stima Crr da Velocità e Potenza</div>
+                <p style="color: var(--text-light); margin-bottom: 2rem;">
+                    Inserisci i dati di una prova reale per stimare il coefficiente di resistenza al rotolamento (Crr) dei tuoi pneumatici.
+                </p>
+
+                <div class="section-title">⚙️ Parametri del Ciclista e Bici</div>
+                
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="crr-massa-ciclista">
+                            Massa Ciclista
+                            <div class="label-description">Peso del ciclista</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-massa-ciclista" value="70" step="0.1" min="30" max="150">
+                            <div class="unit">kg</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="crr-massa-bici">
+                            Massa Bici + Equipaggiamento
+                            <div class="label-description">Peso bici e accessori</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-massa-bici" value="8" step="0.1" min="5" max="20">
+                            <div class="unit">kg</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="crr-cda">
+                            CdA (Drag Coefficient × Area)
+                            <div class="label-description">0.3-0.4 aero, 0.4-0.5 standard</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-cda" value="0.35" step="0.01" min="0.2" max="0.8">
+                            <div class="unit">m²</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="crr-efficienza">
+                            Efficienza Drivetrain
+                            <div class="label-description">90-98% (tipico 95-97%)</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-efficienza" value="96" step="0.5" min="85" max="99">
+                            <div class="unit">%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">📏 Dati della Prova</div>
+                
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="crr-velocita">
+                            Velocità Media
+                            <div class="label-description">Velocità durante la prova</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-velocita" value="35" step="0.1" min="0" max="100">
+                            <div class="unit">km/h</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="crr-potenza">
+                            Potenza Media (alla pedalata)
+                            <div class="label-description">Potenza misurata dal misuratore</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-potenza" value="250" step="1" min="50" max="800">
+                            <div class="unit">W</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="crr-pendenza">
+                            Pendenza Media
+                            <div class="label-description">Gradiente del percorso</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-pendenza" value="0" step="0.1" min="-20" max="25">
+                            <div class="unit">%</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="crr-vento">
+                            Vento (+ favore, - contro)
+                            <div class="label-description">Componente frontale vento</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-vento" value="0" step="0.5" min="-30" max="30">
+                            <div class="unit">km/h</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">🌡️ Condizioni Atmosferiche</div>
+                
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="crr-temperatura">
+                            Temperatura
+                            <div class="label-description">Temperatura ambiente</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-temperatura" value="20" step="1" min="-20" max="50">
+                            <div class="unit">°C</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="crr-pressione">
+                            Pressione Atmosferica
+                            <div class="label-description">Pressione attuale</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-pressione" value="1013" step="1" min="800" max="1100">
+                            <div class="unit">hPa</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="crr-umidita">
+                            Umidità Relativa
+                            <div class="label-description">Umidità dell'aria</div>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="crr-umidita" value="50" step="1" min="0" max="100">
+                            <div class="unit">%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="estimateCrr()">🔍 Stima Crr</button>
+
+                <div id="result-crr" class="result">
+                    <div class="result-inner">
+                        <div class="result-title">COEFFICIENTE Crr STIMATO</div>
+                        <div class="result-main" id="result-crr-main">---</div>
+                        
+                        <div class="result-grid" id="result-crr-grid"></div>
+                        
+                        <div class="details" id="result-crr-details"></div>
+                    </div>
+                </div>
+
+                <div class="help-text">
+                    💡 <strong>Come usare:</strong> Esegui una prova su un percorso noto (preferibilmente pianeggiante o con pendenza costante) registrando velocità e potenza medie. Il calcolatore invertirà le formule per stimare il Crr. Per risultati accurati, usa condizioni di vento calmo e assicurati che il misuratore di potenza sia calibrato.
+                </div>
+            </div>
+            <!-- Fine Tab Stima Crr -->
+        </div>
+    </div>
+
+    <script>
+        // Costanti fisiche
+        const g = 9.8067; // m/s² accelerazione di gravità
+        const Rd = 287.05; // J/(kg·K) costante specifica gas per aria secca
+        const Rv = 461.5; // J/(kg·K) costante specifica gas per vapore acqueo
+
+        // Funzione per abilitare/disabilitare campi scia
+        function toggleScia() {
+            const sciaAttiva = document.getElementById('scia-attiva').value;
+            const sciaInputs = document.querySelectorAll('.scia-input');
+            
+            if (sciaAttiva === 'si') {
+                sciaInputs.forEach(input => {
+                    input.style.opacity = '1';
+                    input.style.pointerEvents = 'auto';
+                });
+            } else {
+                sciaInputs.forEach(input => {
+                    input.style.opacity = '0.5';
+                    input.style.pointerEvents = 'none';
+                });
+            }
+        }
+
+        // Calcolo pressione di saturazione del vapore (formula di Magnus)
+        function calculateSaturationVaporPressure(tempCelsius) {
+            const a = 17.27;
+            const b = 237.7;
+            return 6.112 * Math.exp((a * tempCelsius) / (b + tempCelsius));
+        }
+
+        // Calcolo densità dell'aria
+        function calculateAirDensity(tempC, pressureHPa, RH) {
+            const tempK = tempC + 273.15;
+            const pressurePa = pressureHPa * 100;
+            
+            // Calcola pressione di saturazione
+            const pSat = calculateSaturationVaporPressure(tempC);
+            
+            // Pressione parziale vapore
+            const pv = pSat * (RH / 100);
+            
+            // Pressione aria secca
+            const pd = pressureHPa - pv;
+            
+            // Converti in Pa
+            const pvPa = pv * 100;
+            const pdPa = pd * 100;
+            
+            // Densità aria umida
+            const density = (pdPa / (Rd * tempK)) + (pvPa / (Rv * tempK));
+            
+            return density;
+        }
+
+        function calculate() {
+            // Leggi input
+            const massaCiclista = parseFloat(document.getElementById('massa-ciclista').value);
+            const massaBici = parseFloat(document.getElementById('massa-bici').value);
+            const velocitaKmh = parseFloat(document.getElementById('velocita').value);
+            const pendenza = parseFloat(document.getElementById('pendenza').value);
+            const tempC = parseFloat(document.getElementById('temperatura').value);
+            const pressureHPa = parseFloat(document.getElementById('pressione').value);
+            const RH = parseFloat(document.getElementById('umidita').value);
+            const ventoKmh = parseFloat(document.getElementById('vento').value);
+            const Crr = parseFloat(document.getElementById('crr').value);
+            const CdA = parseFloat(document.getElementById('cda').value);
+            const efficienzaPercent = parseFloat(document.getElementById('efficienza').value);
+            const dislivello = parseFloat(document.getElementById('dislivello').value);
+            const tempo = parseFloat(document.getElementById('tempo').value);
+            
+            // Parametri scia
+            const sciaAttiva = document.getElementById('scia-attiva').value;
+            const CdADavanti = parseFloat(document.getElementById('cda-davanti').value);
+            const distanzaScia = parseFloat(document.getElementById('distanza-scia').value);
+
+            // Validazione
+            if (isNaN(massaCiclista) || isNaN(massaBici) || isNaN(velocitaKmh) || 
+                isNaN(pendenza) || isNaN(tempC) || isNaN(pressureHPa) || 
+                isNaN(RH) || isNaN(ventoKmh) || isNaN(Crr) || isNaN(CdA) || 
+                isNaN(efficienzaPercent)) {
+                alert('Per favore inserisci tutti i valori richiesti.');
+                return;
+            }
+
+            // Calcoli
+            const massaTot = massaCiclista + massaBici;
+            const velocitaMs = velocitaKmh / 3.6; // converti in m/s
+            const ventoMs = ventoKmh / 3.6; // converti in m/s
+            const velocitaApparente = velocitaMs - ventoMs; // velocità apparente (+ vento contro, - vento favore)
+            const efficienza = efficienzaPercent / 100;
+            
+            // Angolo pendenza
+            const theta = Math.atan(pendenza / 100);
+            const sinTheta = Math.sin(theta);
+            const cosTheta = Math.cos(theta);
+            
+            // Densità aria
+            const rho = calculateAirDensity(tempC, pressureHPa, RH);
+            
+            // Calcolo CdA effettivo (con o senza scia)
+            let CdAEffettivo = CdA;
+            let riduzioneScia = 0;
+            let sciaInfo = '';
+            
+            if (sciaAttiva === 'si') {
+                // Formula di riduzione scia basata sulla distanza
+                // La riduzione è massima a distanza minima e decresce con la distanza
+                // Tipicamente: riduzione del 25-40% a distanza ottimale (0.3-1m)
+                
+                // Fattore di riduzione basato sulla distanza (empirico)
+                // Formula semplificata: riduzione = base × e^(-k × distanza)
+                const riduzioneBase = 0.35; // 35% riduzione massima
+                const k = 1.5; // costante di decadimento
+                riduzioneScia = riduzioneBase * Math.exp(-k * distanzaScia);
+                
+                CdAEffettivo = CdA * (1 - riduzioneScia);
+                
+                sciaInfo = `
+                <strong>🌪️ Effetto Scia</strong>
+                CdA atleta davanti: ${CdADavanti.toFixed(3)} m²<br>
+                CdA atleta dietro (solo): ${CdA.toFixed(3)} m²<br>
+                Distanza: ${distanzaScia.toFixed(2)} m<br>
+                Riduzione aerodinamica: ${(riduzioneScia * 100).toFixed(1)}%<br>
+                CdA effettivo in scia: ${CdAEffettivo.toFixed(3)} m²<br>
+                Risparmio potenza aero: ${(riduzioneScia * 100).toFixed(1)}%<br>
+                <br>`;
+            }
+            
+            // 1) POTENZA GRAVITÀ
+            const Pgravita = massaTot * g * velocitaMs * sinTheta;
+            
+            // 2) POTENZA ROTOLAMENTO
+            const Frolling = massaTot * g * Crr * cosTheta;
+            const Prolling = Frolling * velocitaMs;
+            
+            // 3) POTENZA AERODINAMICA (con CdA effettivo)
+            const Paero = 0.5 * rho * CdAEffettivo * Math.pow(velocitaApparente, 3);
+            
+            // Calcolo anche potenza aerodinamica senza scia per confronto
+            const PaeroSoloSenzaScia = sciaAttiva === 'si' ? 
+                0.5 * rho * CdA * Math.pow(velocitaApparente, 3) : 0;
+            const risparmioPotenzaScia = PaeroSoloSenzaScia - Paero;
+            
+            // POTENZA TOTALE ALLA RUOTA
+            const Pwheel = Pgravita + Prolling + Paero;
+            
+            // POTENZA ALLA PEDALATA (considerando efficienza drivetrain)
+            const Ppedal = Pwheel / efficienza;
+            
+            // Calcolo VAM
+            let VAM = 0;
+            let VAMtext = 'N/A';
+            if (dislivello > 0 && tempo > 0) {
+                VAM = (dislivello * 60) / tempo; // m/h
+                VAMtext = VAM.toFixed(0) + ' m/h';
+            }
+            
+            // VAM calcolata da velocità e pendenza
+            const VAMvelocita = velocitaMs * (pendenza / 100) * 3600;
+            
+            // W/kg
+            const WattPerKg = Ppedal / massaCiclista;
+            
+            // Mostra risultati
+            document.getElementById('result-main').textContent = Ppedal.toFixed(0) + ' W';
+            
+            let gridHTML = `
+                <div class="result-item">
+                    <div class="result-item-label">Potenza alla Ruota</div>
+                    <div class="result-item-value">${Pwheel.toFixed(0)} W</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-item-label">W/kg</div>
+                    <div class="result-item-value">${WattPerKg.toFixed(2)}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-item-label">VAM (da input)</div>
+                    <div class="result-item-value">${VAMtext}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-item-label">VAM (da V e pendenza)</div>
+                    <div class="result-item-value">${VAMvelocita.toFixed(0)} m/h</div>
+                </div>
+            `;
+            
+            if (sciaAttiva === 'si') {
+                gridHTML += `
+                <div class="result-item" style="background: rgba(232, 148, 62, 0.2);">
+                    <div class="result-item-label">Risparmio Scia</div>
+                    <div class="result-item-value">${risparmioPotenzaScia.toFixed(0)} W</div>
+                </div>
+                <div class="result-item" style="background: rgba(232, 148, 62, 0.2);">
+                    <div class="result-item-label">Potenza senza Scia</div>
+                    <div class="result-item-value">${(Ppedal + risparmioPotenzaScia / efficienza).toFixed(0)} W</div>
+                </div>
+                `;
+            }
+            
+            const resultGrid = document.getElementById('result-grid');
+            resultGrid.innerHTML = gridHTML;
+            
+            const details = `
+                ${sciaInfo}
+                <strong>📊 Dettaglio Potenze</strong>
+                Potenza Gravità: ${Pgravita.toFixed(1)} W (${(Pgravita/Ppedal*100).toFixed(1)}%)<br>
+                Potenza Rotolamento: ${Prolling.toFixed(1)} W (${(Prolling/Ppedal*100).toFixed(1)}%)<br>
+                Potenza Aerodinamica: ${Paero.toFixed(1)} W (${(Paero/Ppedal*100).toFixed(1)}%)<br>
+                Perdite Drivetrain: ${(Ppedal - Pwheel).toFixed(1)} W (${(100 - efficienzaPercent).toFixed(1)}%)<br>
+                <br>
+                <strong>🌬️ Condizioni Aria</strong>
+                Densità aria: ${rho.toFixed(3)} kg/m³<br>
+                Velocità apparente: ${(velocitaApparente * 3.6).toFixed(1)} km/h<br>
+                ${sciaAttiva === 'si' ? `CdA effettivo: ${CdAEffettivo.toFixed(3)} m² (riduzione ${(riduzioneScia * 100).toFixed(1)}%)<br>` : `CdA: ${CdA.toFixed(3)} m²<br>`}
+                <br>
+                <strong>⚙️ Forze</strong>
+                Forza totale: ${(Pwheel / velocitaMs).toFixed(2)} N<br>
+                Forza gravità: ${(massaTot * g * sinTheta).toFixed(2)} N<br>
+                Forza rotolamento: ${Frolling.toFixed(2)} N<br>
+                Forza aerodinamica: ${(Paero / velocitaApparente).toFixed(2)} N
+            `;
+            
+            document.getElementById('result-details').innerHTML = details;
+            document.getElementById('result').classList.add('show');
+            
+            // Scroll to result
+            setTimeout(() => {
+                document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        // Allow Enter key to calculate
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    // Determina quale tab è attiva
+                    const crrTab = document.getElementById('stima-crr');
+                    if (!crrTab.classList.contains('hidden')) {
+                        estimateCrr();
+                    } else {
+                        calculate();
+                    }
+                }
+            });
+        });
+
+        // Tab switching logic
+        document.querySelectorAll('.tab-headers .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab-headers .tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const target = tab.getAttribute('data-tab');
+                document.querySelectorAll('.tab-panel').forEach(panel => {
+                    if (panel.id === target) {
+                        panel.classList.remove('hidden');
+                    } else {
+                        panel.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        // Funzione per stimare Crr
+        function estimateCrr() {
+            // Leggi input
+            const massaCiclista = parseFloat(document.getElementById('crr-massa-ciclista').value);
+            const massaBici = parseFloat(document.getElementById('crr-massa-bici').value);
+            const velocitaKmh = parseFloat(document.getElementById('crr-velocita').value);
+            const potenzaMisurata = parseFloat(document.getElementById('crr-potenza').value);
+            const pendenza = parseFloat(document.getElementById('crr-pendenza').value);
+            const tempC = parseFloat(document.getElementById('crr-temperatura').value);
+            const pressureHPa = parseFloat(document.getElementById('crr-pressione').value);
+            const RH = parseFloat(document.getElementById('crr-umidita').value);
+            const ventoKmh = parseFloat(document.getElementById('crr-vento').value);
+            const CdA = parseFloat(document.getElementById('crr-cda').value);
+            const efficienzaPercent = parseFloat(document.getElementById('crr-efficienza').value);
+
+            // Validazione
+            if (isNaN(massaCiclista) || isNaN(massaBici) || isNaN(velocitaKmh) || 
+                isNaN(potenzaMisurata) || isNaN(pendenza) || isNaN(tempC) || 
+                isNaN(pressureHPa) || isNaN(RH) || isNaN(ventoKmh) || 
+                isNaN(CdA) || isNaN(efficienzaPercent)) {
+                alert('Per favore inserisci tutti i valori richiesti.');
+                return;
+            }
+
+            // Calcoli preliminari
+            const massaTot = massaCiclista + massaBici;
+            const velocitaMs = velocitaKmh / 3.6;
+            const ventoMs = ventoKmh / 3.6;
+            const velocitaApparente = velocitaMs - ventoMs;
+            const efficienza = efficienzaPercent / 100;
+            
+            const theta = Math.atan(pendenza / 100);
+            const sinTheta = Math.sin(theta);
+            const cosTheta = Math.cos(theta);
+            
+            const rho = calculateAirDensity(tempC, pressureHPa, RH);
+            
+            // Potenza alla ruota
+            const Pwheel = potenzaMisurata * efficienza;
+            
+            // Calcolo potenza gravità (conosciuta)
+            const Pgravita = massaTot * g * velocitaMs * sinTheta;
+            
+            // Calcolo potenza aerodinamica (conosciuta)
+            const Paero = 0.5 * rho * CdA * Math.pow(velocitaApparente, 3);
+            
+            // Potenza rotolamento = Potenza totale - Gravità - Aero
+            const Prolling = Pwheel - Pgravita - Paero;
+            
+            // Dalla formula: P_rolling = m * g * Crr * cos(theta) * V
+            // Ricaviamo: Crr = P_rolling / (m * g * cos(theta) * V)
+            const Crr = Prolling / (massaTot * g * cosTheta * velocitaMs);
+            
+            // Calcolo forza di rotolamento
+            const Frolling = massaTot * g * Crr * cosTheta;
+            
+            // W/kg
+            const WattPerKg = potenzaMisurata / massaCiclista;
+            
+            // Valutazione del Crr
+            let valutazione = '';
+            let qualita = '';
+            if (Crr < 0.003) {
+                valutazione = 'Eccellente';
+                qualita = 'Pneumatici ad altissime prestazioni';
+            } else if (Crr < 0.004) {
+                valutazione = 'Ottimo';
+                qualita = 'Pneumatici performanti';
+            } else if (Crr < 0.005) {
+                valutazione = 'Buono';
+                qualita = 'Pneumatici standard da corsa';
+            } else if (Crr < 0.006) {
+                valutazione = 'Discreto';
+                qualita = 'Pneumatici entry-level o usurati';
+            } else {
+                valutazione = 'Da migliorare';
+                qualita = 'Pneumatici molto usurati o di bassa qualità';
+            }
+            
+            // Mostra risultati
+            document.getElementById('result-crr-main').textContent = Crr.toFixed(4);
+            
+            const resultGrid = document.getElementById('result-crr-grid');
+            resultGrid.innerHTML = `
+                <div class="result-item">
+                    <div class="result-item-label">Valutazione</div>
+                    <div class="result-item-value" style="font-size: 1.2rem;">${valutazione}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-item-label">Forza Rotolamento</div>
+                    <div class="result-item-value">${Frolling.toFixed(2)} N</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-item-label">Potenza Rotolamento</div>
+                    <div class="result-item-value">${Prolling.toFixed(1)} W</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-item-label">% su Totale</div>
+                    <div class="result-item-value">${(Prolling/Pwheel*100).toFixed(1)}%</div>
+                </div>
+            `;
+            
+            const details = `
+                <strong>🔍 Analisi Componenti</strong>
+                Potenza totale (pedalata): ${potenzaMisurata.toFixed(1)} W<br>
+                Potenza alla ruota: ${Pwheel.toFixed(1)} W<br>
+                Potenza gravità: ${Pgravita.toFixed(1)} W (${(Pgravita/Pwheel*100).toFixed(1)}%)<br>
+                Potenza aerodinamica: ${Paero.toFixed(1)} W (${(Paero/Pwheel*100).toFixed(1)}%)<br>
+                Potenza rotolamento: ${Prolling.toFixed(1)} W (${(Prolling/Pwheel*100).toFixed(1)}%)<br>
+                <br>
+                <strong>📊 Qualità Pneumatici</strong>
+                ${qualita}<br>
+                W/kg: ${WattPerKg.toFixed(2)}<br>
+                <br>
+                <strong>🌬️ Condizioni Test</strong>
+                Densità aria: ${rho.toFixed(3)} kg/m³<br>
+                Velocità apparente: ${(velocitaApparente * 3.6).toFixed(1)} km/h<br>
+                Temperatura: ${tempC}°C, Pressione: ${pressureHPa} hPa<br>
+                <br>
+                <strong>📏 Riferimenti Crr</strong>
+                0.002-0.003: Pneumatici top racing (tubeless, latex)<br>
+                0.003-0.004: Pneumatici racing standard<br>
+                0.004-0.005: Pneumatici allenamento buoni<br>
+                0.005-0.007: Pneumatici entry-level o usurati<br>
+                > 0.007: Pneumatici molto usurati o MTB
+            `;
+            
+            document.getElementById('result-crr-details').innerHTML = details;
+            document.getElementById('result-crr').classList.add('show');
+            
+            // Scroll to result
+            setTimeout(() => {
+                document.getElementById('result-crr').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+    </script>
+</body>
+</html>
