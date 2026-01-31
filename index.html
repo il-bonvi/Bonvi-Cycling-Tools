@@ -397,6 +397,9 @@
                 <div class="tab" data-tab="stima-crr">
                     🔍 Stima Crr
                 </div>
+                <div class="tab" data-tab="vam">
+                    📊 VAM
+                </div>
             </div>
 
             <!-- Tab Calcolo Potenza -->
@@ -502,7 +505,7 @@
             <div class="input-grid">
                 <div class="input-group">
                     <label for="crr">
-                        Coefficiente Resistenza Rotolamento (Crr)
+                        Coefficiente Res Rotolamento (Crr)
                         <div class="label-description">0.003-0.006 per pneumatici strada</div>
                     </label>
                     <div class="input-wrapper">
@@ -573,31 +576,7 @@
                 </div>
             </div>
 
-            <div class="section-title">📊 Calcolo VAM (opzionale)</div>
-            
-            <div class="input-grid">
-                <div class="input-group">
-                    <label for="dislivello">
-                        Dislivello
-                        <div class="label-description">Metri di salita verticale</div>
-                    </label>
-                    <div class="input-wrapper">
-                        <input type="number" id="dislivello" value="500" step="10" min="0" max="3000">
-                        <div class="unit">m</div>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label for="tempo">
-                        Tempo
-                        <div class="label-description">Tempo di salita</div>
-                    </label>
-                    <div class="input-wrapper">
-                        <input type="number" id="tempo" value="30" step="0.5" min="0.1" max="300">
-                        <div class="unit">min</div>
-                    </div>
-                </div>
-            </div>
+            <!-- VAM rimosso da questa tab; ora disponibile nella tab 'VAM' -->
 
             <button onclick="calculate()">⚡ Calcola Potenza e Metriche</button>
 
@@ -775,10 +754,73 @@
                 <div class="help-text">
                     💡 <strong>Come usare:</strong> Esegui una prova su un percorso noto (preferibilmente pianeggiante o con pendenza costante) registrando velocità e potenza medie. Il calcolatore invertirà le formule per stimare il Crr. Per risultati accurati, usa condizioni di vento calmo e assicurati che il misuratore di potenza sia calibrato.
                 </div>
+                </div>
+
+                <!-- Tab VAM (inserito correttamente all'interno del container) -->
+                <div id="vam" class="tab-panel hidden">
+                    <div class="section-title">📊 Calcolo VAM</div>
+                    <p style="color: var(--text-light); margin-bottom: 1rem;">Calcola la VAM da dislivello/tempo o da velocità e pendenza.</p>
+
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="dislivello">
+                                Dislivello
+                                <div class="label-description">Metri di salita verticale</div>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" id="dislivello" value="500" step="10" min="0" max="3000">
+                                <div class="unit">m</div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="tempo">
+                                Tempo
+                                <div class="label-description">Tempo di salita</div>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" id="tempo" value="30" step="0.5" min="0.1" max="300">
+                                <div class="unit">min</div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="vam-velocita">
+                                Velocità (per calcolo alternativo)
+                                <div class="label-description">Velocità media (km/h) per calcolare VAM da velocità e pendenza</div>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" id="vam-velocita" value="30" step="0.1" min="0" max="100">
+                                <div class="unit">km/h</div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="vam-pendenza">
+                                Pendenza (per calcolo alternativo)
+                                <div class="label-description">Gradiente della salita (%)</div>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" id="vam-pendenza" value="5" step="0.1" min="-20" max="25">
+                                <div class="unit">%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="calculateVAM()">Calcola VAM</button>
+
+                    <div id="vam-result" class="result" style="margin-top:1rem; display:none;">
+                        <div class="result-inner">
+                            <div class="result-title">RISULTATI VAM</div>
+                            <div class="result-main" id="vam-main">---</div>
+                            <div class="result-grid" id="vam-grid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fine Tab Stima Crr -->
             </div>
-            <!-- Fine Tab Stima Crr -->
         </div>
-    </div>
 
     <script>
         // Costanti fisiche
@@ -848,8 +890,7 @@
             const Crr = parseFloat(document.getElementById('crr').value);
             const CdA = parseFloat(document.getElementById('cda').value);
             const efficienzaPercent = parseFloat(document.getElementById('efficienza').value);
-            const dislivello = parseFloat(document.getElementById('dislivello').value);
-            const tempo = parseFloat(document.getElementById('tempo').value);
+            // dislivello/tempo gestiti nella tab VAM
             
             // Parametri scia
             const sciaAttiva = document.getElementById('scia-attiva').value;
@@ -930,16 +971,7 @@
             // POTENZA ALLA PEDALATA (considerando efficienza drivetrain)
             const Ppedal = Pwheel / efficienza;
             
-            // Calcolo VAM
-            let VAM = 0;
-            let VAMtext = 'N/A';
-            if (dislivello > 0 && tempo > 0) {
-                VAM = (dislivello * 60) / tempo; // m/h
-                VAMtext = VAM.toFixed(0) + ' m/h';
-            }
-            
-            // VAM calcolata da velocità e pendenza
-            const VAMvelocita = velocitaMs * (pendenza / 100) * 3600;
+            // VAM calcolo spostato nella tab dedicata
             
             // W/kg
             const WattPerKg = Ppedal / massaCiclista;
@@ -956,14 +988,7 @@
                     <div class="result-item-label">W/kg</div>
                     <div class="result-item-value">${WattPerKg.toFixed(2)}</div>
                 </div>
-                <div class="result-item">
-                    <div class="result-item-label">VAM (da input)</div>
-                    <div class="result-item-value">${VAMtext}</div>
-                </div>
-                <div class="result-item">
-                    <div class="result-item-label">VAM (da V e pendenza)</div>
-                    <div class="result-item-value">${VAMvelocita.toFixed(0)} m/h</div>
-                </div>
+                <!-- VAM rimossa dai risultati principali -->
             `;
             
             if (sciaAttiva === 'si') {
@@ -1011,20 +1036,64 @@
             }, 100);
         }
 
-        // Allow Enter key to calculate
+        // Allow Enter key to calculate: route based on active tab
         document.querySelectorAll('input[type="number"]').forEach(input => {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    // Determina quale tab è attiva
-                    const crrTab = document.getElementById('stima-crr');
-                    if (!crrTab.classList.contains('hidden')) {
+                    const activePanel = document.querySelector('.tab-panel:not(.hidden)');
+                    if (!activePanel) return;
+                    if (activePanel.id === 'stima-crr') {
                         estimateCrr();
+                    } else if (activePanel.id === 'vam') {
+                        calculateVAM();
                     } else {
                         calculate();
                     }
                 }
             });
         });
+
+        // Funzione per calcolare VAM separatamente
+        function calculateVAM() {
+            const dislivello = parseFloat(document.getElementById('dislivello').value);
+            const tempo = parseFloat(document.getElementById('tempo').value);
+            const velocitaKmh = parseFloat(document.getElementById('vam-velocita').value);
+            const pendenza = parseFloat(document.getElementById('vam-pendenza').value);
+
+            let VAMinput = null;
+            if (!isNaN(dislivello) && !isNaN(tempo) && tempo > 0) {
+                VAMinput = (dislivello * 60) / tempo; // m/h
+            }
+
+            let VAMvel = null;
+            if (!isNaN(velocitaKmh) && !isNaN(pendenza)) {
+                const velocitaMs = velocitaKmh / 3.6;
+                VAMvel = velocitaMs * (pendenza / 100) * 3600; // m/h
+            }
+
+            const main = document.getElementById('vam-main');
+            const grid = document.getElementById('vam-grid');
+            const container = document.getElementById('vam-result');
+
+            let html = '';
+            if (VAMinput !== null) {
+                html += `<div class="result-item"><div class="result-item-label">VAM (da dislivello/tempo)</div><div class="result-item-value">${VAMinput.toFixed(0)} m/h</div></div>`;
+            } else {
+                html += `<div class="result-item"><div class="result-item-label">VAM (da dislivello/tempo)</div><div class="result-item-value">N/A</div></div>`;
+            }
+
+            if (VAMvel !== null) {
+                html += `<div class="result-item"><div class="result-item-label">VAM (da velocità e pendenza)</div><div class="result-item-value">${VAMvel.toFixed(0)} m/h</div></div>`;
+            } else {
+                html += `<div class="result-item"><div class="result-item-label">VAM (da velocità e pendenza)</div><div class="result-item-value">N/A</div></div>`;
+            }
+
+            grid.innerHTML = html;
+            main.textContent = (VAMinput !== null ? `${VAMinput.toFixed(0)} m/h` : (VAMvel !== null ? `${VAMvel.toFixed(0)} m/h` : 'N/A'));
+            container.style.display = 'block';
+            container.classList.add('show');
+            setTimeout(() => { container.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+        }
 
         // Tab switching logic
         document.querySelectorAll('.tab-headers .tab').forEach(tab => {
