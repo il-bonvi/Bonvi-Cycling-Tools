@@ -319,12 +319,15 @@
         }
 
         .formula-box {
-            margin: 1.5rem 0;
+            margin: 1rem 0;
             padding: 1rem;
             background: var(--bg-main);
             border-radius: 10px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.9rem;
+            color: var(--text-light);
+            font-style: italic;
+            border-left: 4px solid var(--accent);
             overflow-x: auto;
         }
 
@@ -598,6 +601,15 @@
                 💡 <strong>Suggerimenti:</strong> Il calcolatore tiene conto di tutte le resistenze (gravità, rotolamento, aerodinamica) e calcola la potenza necessaria alla pedalata considerando l'efficienza del drivetrain. La densità dell'aria è calcolata automaticamente dalle condizioni atmosferiche inserite.<br><br>
                 🌪️ <strong>Scia:</strong> Quando attivata, la scia riduce il CdA effettivo in base alla distanza dall'atleta davanti. A distanza ottimale (0.3-1m) la riduzione è del 25-35%, decresce esponenzialmente aumentando la distanza. Il CdA dell'atleta davanti influenza la turbolenza creata.
             </div>
+            <div class="formula-box">
+                <strong>Formule utilizzate (Calcolo Potenza)</strong>
+                <br>Paero = 0.5 · ρ · CdA · v_app³
+                <br>Prolling = Crr · m · g · v
+                <br>Pgravity = m · g · v · sin(θ)  (θ = atan(pendenza/100))
+                <br>Pwheel = Paero + Prolling + Pgravity
+                <br>Ppedal = Pwheel / efficienza
+                <br>Velocità apparente: v_app = v - v_vento
+            </div>
             </div>
             <!-- Fine Tab Calcolo Potenza -->
 
@@ -757,6 +769,14 @@
                 <div class="help-text">
                     💡 <strong>Come usare:</strong> Esegui una prova su un percorso noto (preferibilmente pianeggiante o con pendenza costante) registrando velocità e potenza medie. Il calcolatore invertirà le formule per stimare il Crr. Per risultati accurati, usa condizioni di vento calmo e assicurati che il misuratore di potenza sia calibrato.
                 </div>
+                <div class="formula-box">
+                    <strong>Formule utilizzate (Stima Crr)</strong>
+                    <br>Pwheel = Potenza_misurata · efficienza
+                    <br>Paero = 0.5 · ρ · CdA · v_app³
+                    <br>Pgravita = m · g · v · sin(θ)
+                    <br>Prolling = Pwheel - Paero - Pgravita
+                    <br>Crr = Prolling / (m · g · cos(θ) · v)
+                </div>
                 </div>
 
                 <!-- Tab VAM (inserito correttamente all'interno del container) -->
@@ -818,6 +838,11 @@
                             <div class="result-main" id="vam-main">---</div>
                             <div class="result-grid" id="vam-grid"></div>
                         </div>
+                    </div>
+                    <div class="formula-box">
+                        <strong>Formule utilizzate (VAM)</strong>
+                        <br>VAM (da dislivello/tempo) = (dislivello · 60) / tempo  &nbsp;(m/h)
+                        <br>VAM (da velocità e pendenza) = v · (pendenza/100) · 3600  &nbsp;(m/h)
                     </div>
                 </div>
 
@@ -900,11 +925,19 @@
                     </div>
 
                     <div class="help-text">
-                        <strong>Note:</strong> Lo sviluppo metrico è dato da: sviluppo = (corona / pignone) × circonferenza_ruota. La velocità (km/h) è calcolata da: velocità = sviluppo × (cadenza / 60) × 3.6.
+                        <strong>Note:</strong> Lo sviluppo metrico è dato da: sviluppo = (corona / pignone) × circonferenza ruota. La velocità (km/h) è calcolata da: velocità = sviluppo × (cadenza / 60) × 3.6.
+                    </div>
+                    <div class="formula-box">
+                        <strong>Formule utilizzate (Gear-Ratio)</strong>
+                        <br>Rapporto = corona / pignone
+                        <br>Sviluppo = Rapporto · circonferenza_ruota  &nbsp;(m/giro)
+                        <br>Velocità = Sviluppo · (cadenza / 60) · 3.6  &nbsp;(km/h)
+                        <br>Diametro_ruota = circonferenza / π
+                        <br>Gear inches = Diametro_ruota(in) · Rapporto
                     </div>
                 </div>
 
-                <!-- Fine Tab Stima Crr -->
+                <!-- Metodo Chung rimosso (ora in chung.html) -->
             </div>
         </div>
 
@@ -1270,6 +1303,8 @@
             document.getElementById('gear-result').classList.add('show');
             setTimeout(() => { document.getElementById('gear-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
         }
+
+        // Metodo Chung moved to standalone file (chung.html)
 
         // Tab switching logic
         document.querySelectorAll('.tab-headers .tab').forEach(tab => {

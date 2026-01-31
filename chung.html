@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metodo Chung — Virtual Elevation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a3a52;
+            --secondary: #2c5f7f;
+            --accent: #e8943e;
+            --accent-light: #f5b76f;
+            --bg-main: #f4f1ea;
+            --bg-card: #ffffff;
+            --text-dark: #1a1a1a;
+            --text-light: #5a5a5a;
+            --border: #d4c9b8;
+        }
+        body { font-family: 'Crimson Pro', serif; background: linear-gradient(135deg, var(--bg-main) 0%, #e8e3d8 100%); color: var(--text-dark); padding: 2rem; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .calculator { background: var(--bg-card); border-radius: 16px; padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
+        .section-title { font-size: 1.25rem; font-weight:700; color:var(--primary); margin-bottom:0.75rem; }
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:1rem; }
+        .input-wrapper { display:flex; gap:0.5rem; align-items:stretch; }
+        input[type="number"], select, input[type="file"] { padding:0.6rem 0.9rem; border-radius:8px; border:2px solid var(--border); font-family:'JetBrains Mono', monospace; }
+        .unit { background:var(--primary); color:white; padding:0.5rem 0.8rem; border-radius:8px; font-family:'JetBrains Mono', monospace; }
+        button { margin-top:1rem; padding:0.9rem; border-radius:10px; background: linear-gradient(135deg,var(--accent),var(--accent-light)); color:white; border:none; font-weight:700; }
+        .help-text { font-size:0.95rem; color:var(--text-light); font-style:italic; margin-top:0.75rem; padding:1rem; background:var(--bg-main); border-radius:10px; border-left:4px solid var(--accent); }
+        .result-inner { padding:1rem; background:linear-gradient(135deg,var(--primary),var(--secondary)); color:white; border-radius:10px; }
+        .result-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:0.75rem; margin-top:0.75rem; }
+        .result-item { background: rgba(255,255,255,0.08); padding:0.8rem; border-radius:8px; }
+        .formula-box { margin:1rem 0; padding:1rem; background:var(--bg-main); border-radius:10px; font-family:'JetBrains Mono', monospace; font-size:0.9rem; color:var(--text-light); font-style:italic; border-left:4px solid var(--accent); overflow-x:auto; }
+        canvas { border-radius:8px; display:block; margin-top:0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><h1>Metodo Chung — Virtual Elevation</h1><p class="help-text">Tool standalone per calcolare l'Elevazione Virtuale da un CSV (power+speed). Usa un circuito o velodromo per risultati migliori.</p></header>
+        <div class="calculator">
+            <div class="section-title">Carica dati</div>
+            <div class="input-grid">
+                <div>
+                    <label>CSV (time,power,speed)</label>
+                    <div class="input-wrapper"><input type="file" id="chung-file" accept="text/csv"><div class="unit">CSV</div></div>
+                    <div class="label-description">Speed può essere in km/h o m/s; verrà inferito automaticamente.</div>
+                </div>
+                <div>
+                    <label>Massa totale (kg)</label>
+                    <div class="input-wrapper"><input type="number" id="chung-massa" value="78" step="0.1"><div class="unit">kg</div></div>
+                </div>
+                <div>
+                    <label>dt (s) — usato se no timestamp</label>
+                    <div class="input-wrapper"><input type="number" id="chung-dt" value="1" step="0.01"><div class="unit">s</div></div>
+                </div>
+                <div>
+                    <label>CdA</label>
+                    <div class="input-wrapper"><input type="range" id="chung-cda" min="0.1" max="0.6" step="0.005" value="0.35" oninput="document.getElementById('cda-val').textContent=this.value"><div class="unit" id="cda-val">0.35</div></div>
+                </div>
+                <div>
+                    <label>Crr</label>
+                    <div class="input-wrapper"><input type="range" id="chung-crr" min="0.002" max="0.01" step="0.0001" value="0.004" oninput="document.getElementById('crr-val').textContent=this.value"><div class="unit" id="crr-val">0.004</div></div>
+                </div>
+                <div>
+                    <label>Temperatura</label>
+                    <div class="input-wrapper"><input type="number" id="chung-temp" value="20"><div class="unit">°C</div></div>
+                </div>
+                <div>
+                    <label>Pressione</label>
+                    <div class="input-wrapper"><input type="number" id="chung-pressione" value="1013"><div class="unit">hPa</div></div>
+                </div>
+                <div>
+                    <label>Umidità</label>
+                    <div class="input-wrapper"><input type="number" id="chung-umidita" value="50"><div class="unit">%</div></div>
+                </div>
+            </div>
+
+            <button onclick="processChungFile()">Calcola Virtual Elevation</button>
+
+            <div class="result-inner" style="margin-top:1rem;">
+                <div class="result-title">Virtual Elevation</div>
+                <canvas id="chung-canvas" width="800" height="240" style="width:100%;"></canvas>
+                <div class="result-grid" id="chung-grid"></div>
+                <div id="chung-details" style="margin-top:0.75rem; color:white;"></div>
+            </div>
+
+            <div class="help-text">Suggerimento: carica il CSV e poi muovi i slider CdA/Crr — osserva come il profilo virtuale cambia; per un loop la VE dovrebbe tornare a zero.</div>
+            <div class="formula-box">
+                <strong>Formule (sintesi)</strong>
+                <br>Ptot = Paero + Prolling + Pgravity + Paccel
+                <br>Paero = 0.5 · ρ · CdA · v³
+                <br>Prolling = Crr · m · g · v
+                <br>Paccel = m · a · v
+                <br>Ftot = P / v
+                <br>Fgravity = Ftot - Faero - Frolling - Facc
+                <br>Slope = Fgravity / (m · g)
+                <br>Δh = Slope · (v · dt), VE(t) = ΣΔh
+            </div>
+        </div>
+    </div>
+
+<script>
+// Constants and helpers
+const g = 9.8067;
+const Rd = 287.05;
+const Rv = 461.5;
+function calculateSaturationVaporPressure(tempC) {
+    const a = 17.27; const b = 237.7;
+    return 6.112 * Math.exp((a * tempC) / (b + tempC));
+}
+function calculateAirDensity(tempC, pressureHPa, RH) {
+    const tempK = tempC + 273.15;
+    const pSat = calculateSaturationVaporPressure(tempC);
+    const pv = pSat * (RH / 100);
+    const pd = pressureHPa - pv;
+    const pvPa = pv * 100; const pdPa = pd * 100;
+    return (pdPa / (Rd * tempK)) + (pvPa / (Rv * tempK));
+}
+
+// CSV parser
+function parseCSV(text) {
+    const lines = text.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
+    if (lines.length === 0) return [];
+    const headers = lines[0].split(/,|;|\t/).map(h => h.trim().toLowerCase());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(/,|;|\t/).map(c => c.trim());
+        if (cols.length < 2) continue;
+        const row = {};
+        for (let j = 0; j < Math.min(headers.length, cols.length); j++) row[headers[j]] = cols[j];
+        rows.push(row);
+    }
+    return rows;
+}
+
+let chungData = null;
+function processChungFile() {
+    const fileInput = document.getElementById('chung-file');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) { alert('Seleziona un file CSV'); return; }
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const rows = parseCSV(e.target.result);
+            const data = [];
+            for (let r of rows) {
+                const power = parseFloat(r.power ?? r.p ?? r.w ?? r.watt ?? r.watts);
+                let speed = parseFloat(r.speed ?? r.v ?? r.vel ?? r.kmh ?? r.km_h);
+                let time = r.time !== undefined ? parseFloat(r.time) : null;
+                if (isNaN(power) || isNaN(speed)) continue;
+                if (speed > 20) speed = speed / 3.6;
+                data.push({ time: time, power: power, speed: speed });
+            }
+            if (data.length === 0) { alert('Nessuna riga valida (power/speed)'); return; }
+            let useTime = data.every(d => d.time !== null && !isNaN(d.time));
+            if (useTime) for (let i=0;i<data.length;i++) data[i].dt = i===0?0:(data[i].time - data[i-1].time);
+            else { const dt = parseFloat(document.getElementById('chung-dt').value)||1; for (let i=0;i<data.length;i++) data[i].dt=dt; }
+            chungData = data; computeAndDrawChung();
+        } catch (err) { alert('Errore parsing CSV: '+err.message); }
+    };
+    reader.readAsText(file);
+}
+
+function computeAndDrawChung() {
+    if (!chungData || chungData.length===0) { alert('Nessun dato caricato'); return; }
+    const m = parseFloat(document.getElementById('chung-massa').value)||75;
+    const CdA = parseFloat(document.getElementById('chung-cda').value)||0.35;
+    const Crr = parseFloat(document.getElementById('chung-crr').value)||0.004;
+    const temp = parseFloat(document.getElementById('chung-temp').value)||20;
+    const press = parseFloat(document.getElementById('chung-pressione').value)||1013;
+    const rh = parseFloat(document.getElementById('chung-umidita').value)||50;
+    const rho = calculateAirDensity(temp, press, rh);
+
+    const elevations = [], distances = [];
+    let ve = 0, dist = 0;
+    for (let i=0;i<chungData.length;i++) {
+        const p = chungData[i].power; const v = chungData[i].speed; const dt = chungData[i].dt || 1;
+        const a = i===0?0:(v - chungData[i-1].speed)/dt;
+        let slope = 0;
+        if (v>0.1) {
+            const Faero = 0.5 * rho * CdA * v * v;
+            const Frolling = Crr * m * g;
+            const Facc = m * a;
+            const Ftot = p / v;
+            const Fgravity = Ftot - Faero - Frolling - Facc;
+            slope = Fgravity / (m * g);
+        }
+        const dh = slope * (v * dt);
+        ve += dh; dist += v * dt;
+        elevations.push(ve); distances.push(dist);
+    }
+
+    const grid = document.getElementById('chung-grid');
+    const start = elevations[0]||0; const end = elevations[elevations.length-1]||0;
+    grid.innerHTML = `
+        <div class="result-item"><div class="result-item-label">Elevazione iniziale</div><div class="result-item-value">${start.toFixed(2)} m</div></div>
+        <div class="result-item"><div class="result-item-label">Elevazione finale</div><div class="result-item-value">${end.toFixed(2)} m</div></div>
+        <div class="result-item"><div class="result-item-label">Delta elevazione</div><div class="result-item-value">${(end-start).toFixed(2)} m</div></div>
+        <div class="result-item"><div class="result-item-label">Distanza totale</div><div class="result-item-value">${(dist/1000).toFixed(3)} km</div></div>
+    `;
+    document.getElementById('chung-details').innerHTML = `<strong>Parametri</strong><br>CdA: ${CdA.toFixed(3)}, Crr: ${Crr.toFixed(4)}, Massa: ${m} kg, Densità aria: ${rho.toFixed(3)} kg/m³`;
+    drawLineChart('chung-canvas', distances, elevations, 'Distance (m)', 'Virtual Elevation (m)');
+}
+
+function drawLineChart(canvasId, xs, ys, xlabel, ylabel) {
+    const canvas = document.getElementById(canvasId); if (!canvas) return;
+    const ctx = canvas.getContext('2d'); const w = canvas.width = canvas.clientWidth*2; const h = canvas.height = canvas.clientHeight*2;
+    ctx.clearRect(0,0,w,h);
+    const minX=0, maxX = xs[xs.length-1]||1, minY = Math.min(0,...ys), maxY = Math.max(...ys,1), pad=40;
+    ctx.strokeStyle='rgba(0,0,0,0.08)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,h-pad); ctx.lineTo(w-pad,h-pad); ctx.stroke();
+    ctx.strokeStyle='#f5b76f'; ctx.lineWidth=2.5; ctx.beginPath();
+    for (let i=0;i<xs.length;i++){ const x = pad + ((xs[i]-minX)/(maxX-minX||1))*(w-pad*2); const y = (h-pad) - ((ys[i]-minY)/(maxY-minY||1))*(h-pad*2); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);} ctx.stroke();
+    ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.font = (12*2)+'px JetBrains Mono'; ctx.fillText(xlabel, pad, h-8); ctx.fillText(ylabel, 6, pad-6);
+}
+
+// Wire inputs
+document.getElementById('chung-file')?.addEventListener('change', () => {});
+document.getElementById('chung-cda')?.addEventListener('input', () => { if (chungData) computeAndDrawChung(); });
+document.getElementById('chung-crr')?.addEventListener('input', () => { if (chungData) computeAndDrawChung(); });
+document.getElementById('chung-massa')?.addEventListener('input', () => { if (chungData) computeAndDrawChung(); });
+</script>
+</body>
+</html>
